@@ -18,7 +18,8 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->foreignId('merchant_id');
             // TODO: Replace me with a brief explanation of why floats aren't the correct data type, and replace with the correct data type.
-            $table->float('commission_rate');
+            // assertEquals doesn't work on float type in some case.
+            $table->decimal('commission_rate', $precision = 30, $scale = 18);
             $table->string('discount_code');
             $table->timestamps();
         });

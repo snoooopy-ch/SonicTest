@@ -20,7 +20,20 @@ class MerchantService
      */
     public function register(array $data): Merchant
     {
-        // TODO: Complete this method
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'type' => User::TYPE_MERCHANT,
+            'password' => $data['api_key']
+        ]);
+
+        $merchant = Merchant::create([
+            'user_id' => $user->id,
+            'domain' => $data['domain'],
+            'display_name' => $data['name'],
+        ]);
+
+        return $merchant;
     }
 
     /**
@@ -32,6 +45,11 @@ class MerchantService
     public function updateMerchant(User $user, array $data)
     {
         // TODO: Complete this method
+        Merchant::where('user_id', $user->id)
+            ->update([
+                'domain' => $data['domain'],
+                'display_name' => $data['name']
+            ]);
     }
 
     /**
@@ -44,6 +62,15 @@ class MerchantService
     public function findMerchantByEmail(string $email): ?Merchant
     {
         // TODO: Complete this method
+        if ($email === null) {
+            return null;
+        }
+        
+        $user = User::where('email', $email)->first();
+        if ($user === null) return null;
+
+        $merchant = Merchant::where('user_id', $user->id)->first();
+        return $merchant;
     }
 
     /**
@@ -56,5 +83,10 @@ class MerchantService
     public function payout(Affiliate $affiliate)
     {
         // TODO: Complete this method
+        $orders = $affiliate->orders()->where('payout_status', Order::STATUS_UNPAID)->get();
+
+        foreach($orders as $order) {
+            dispatch(new PayoutOrderJob($order));
+        }
     }
 }
